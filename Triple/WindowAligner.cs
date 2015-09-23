@@ -17,31 +17,43 @@ namespace Triple
     {
         public static void Align(WindowAlignment alignment, IntPtr hWnd)
         {
-            // Check if wnd is resizeable
-
             if(hWnd == IntPtr.Zero)
             {
                 hWnd = GetForegroundWindow();
             }
 
-            int areaWidth = Screen.PrimaryScreen.WorkingArea.Width;
-            int areaHeight = Screen.PrimaryScreen.WorkingArea.Height;
-            int windowWidth = areaWidth / 3;
-            int marginLeft = alignment > 0 ? ((areaWidth % windowWidth) >> 1) * (int)alignment : 0;
-            int xPos = windowWidth * (int)alignment + marginLeft;
+            var style = GetWindowLong(hWnd, GWL_STYLE);
+            
+            if((style & WS_SIZEBOX) == WS_SIZEBOX)
+            {
+                int areaWidth = Screen.PrimaryScreen.WorkingArea.Width;
+                int areaHeight = Screen.PrimaryScreen.WorkingArea.Height;
+                int windowWidth = areaWidth / 3;
+                int marginLeft = alignment > 0 ? ((areaWidth % windowWidth) >> 1) * (int)alignment : 0;
+                int xPos = windowWidth * (int)alignment + marginLeft;
 
-            //Console.WriteLine("WorkingArea: {0}x{1}", areaWidth, areaHeight);
-            //Console.WriteLine("Window: {0}x{1}", windowWidth, areaHeight);
-            //Console.WriteLine("Margin left: {0}", marginLeft);
-            //Console.WriteLine("Position X: {0}", xPos);
+                //Console.WriteLine("WorkingArea: {0}x{1}", areaWidth, areaHeight);
+                //Console.WriteLine("Window: {0}x{1}", windowWidth, areaHeight);
+                //Console.WriteLine("Margin left: {0}", marginLeft);
+                //Console.WriteLine("Style: {0}", style);
+                //Console.WriteLine("Position X: {0}", xPos);
 
-            MoveWindow(hWnd, xPos, 0, windowWidth, areaHeight, true);
+                MoveWindow(hWnd, xPos, 0, windowWidth, areaHeight, true);
+            }
+
+            
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern IntPtr GetForegroundWindow();
+        private static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
-        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        private const int GWL_STYLE = -16;
+        private const int WS_SIZEBOX = 0x00040000;
     }
 }
